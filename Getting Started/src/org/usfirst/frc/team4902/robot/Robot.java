@@ -1,6 +1,7 @@
 package org.usfirst.frc.team4902.robot;
 
 import edu.wpi.first.wpilibj.CameraServer;
+import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.RobotDrive;
@@ -12,6 +13,8 @@ public class Robot extends IterativeRobot {
 	CameraServer server;
 	Joystick stick;
 	RobotDrive myRobot;
+	
+	Encoder liftEncoder;
 	
 	final int frontLeftChannel = 0;
 	final int frontRightChannel = 0;
