@@ -1,64 +1,56 @@
 package org.usfirst.frc.team4902.robot;
 
-import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.RobotDrive;
-import edu.wpi.first.wpilibj.livewindow.LiveWindow;
+import edu.wpi.first.wpilibj.RobotDrive.MotorType;
+import edu.wpi.first.wpilibj.Timer;
 
-/**
- * The VM is configured to automatically run this class, and to call the
- * functions corresponding to each mode, as described in the IterativeRobot
- * documentation. If you change the name of this class or the package after
- * creating this project, you must also update the manifest file in the resource
- * directory.
- */
 public class Robot extends IterativeRobot {
-	RobotDrive myRobot;
-	Joystick stick;
-	int autoLoopCounter;
 	
-    /**
-     * This function is run when the robot is first started up and should be
-     * used for any initialization code.
-     */
+	CameraServer server;
+	Joystick stick;
+	RobotDrive myRobot;
+	
+	final int frontLeftChannel = 0;
+	final int frontRightChannel = 0;
+	final int rearLeftChannel = 0;
+	final int rearRightChannel = 0;
+	
+	final int joystickLeftX = 0;
+	final int joystickLeftY = 1;
+	final int joystickRightX  = 4;
+	
+	final int joystickChannel	= 0;
+	
     public void robotInit() {
-    	myRobot = new RobotDrive(2,1);
-    	stick = new Joystick(0);
-    }
-    
-    /**
-     * This function is run once each time the robot enters autonomous mode
-     */
-    public void autonomousInit() {
-    	autoLoopCounter = 0;
+    	
+        server = CameraServer.getInstance();
+        server.setQuality(20);
+        server.startAutomaticCapture("cam0");
+        
+        myRobot = new RobotDrive(frontLeftChannel, rearLeftChannel, frontRightChannel, rearRightChannel);
+        
+        //robotDrive.setInvertedMotor(MotorType.kFrontLeft, true);	// invert the left side motors
+    	//robotDrive.setInvertedMotor(MotorType.kRearLeft, true);		// might need to change
+        
+        stick = new Joystick(joystickChannel);
+        
+        stick.setAxisChannel(Joystick.AxisType.kX, joystickLeftX);
+        stick.setAxisChannel(Joystick.AxisType.kY, joystickLeftY);
+        stick.setAxisChannel(Joystick.AxisType.kZ, joystickRightX);
     }
 
-    /**
-     * This function is called periodically during autonomous
-     */
     public void autonomousPeriodic() {
-			myRobot.drive(-0.5, 0.0); 	// drive forwards half speed
-			autoLoopCounter++;
-    }
-    
-    /**
-     * This function is called once each time the robot enters tele-operated mode
-     */
-    public void teleopInit(){
+    	
     }
 
-    /**
-     * This function is called periodically during operator control
-     */
     public void teleopPeriodic() {
-        myRobot.arcadeDrive(stick);
-    }
-    
-    /**
-     * This function is called periodically during test mode
-     */
-    public void testPeriodic() {
-    	LiveWindow.run();
+    	
+    	myRobot.mecanumDrive_Cartesian(stick.getX(), stick.getY(), stick.getZ(), 0);
+    	
+    	Timer.delay(0.005);
     }
     
 }
