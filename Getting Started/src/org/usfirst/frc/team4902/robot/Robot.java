@@ -15,6 +15,8 @@ public class Robot extends IterativeRobot {
 	RobotDrive myRobot;
 	
 	Encoder liftEncoder;
+	final int liftChannelA = 5;
+	final int liftChannelB = 6;
 	
 	final int frontLeftChannel = 0;
 	final int frontRightChannel = 0;
@@ -52,6 +54,8 @@ public class Robot extends IterativeRobot {
     public void teleopPeriodic() {
     	
     	myRobot.mecanumDrive_Cartesian(stick.getX(), stick.getY(), stick.getZ(), 0);
+    	
+    	System.out.println(liftEncoder.getDirection() + ", " + liftEncoder.getDistance());
     	
     	Timer.delay(0.005);
     }
