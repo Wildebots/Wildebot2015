@@ -35,6 +35,10 @@ public class Robot extends IterativeRobot {
 	private Talon rearLeftMotor;
 	private Talon rearRightMotor;
 	
+	final double speed = 0.5;
+	final double STOP = 0.0;
+	final double delay = 5;
+	
     public void robotInit() {
     	
         server = CameraServer.getInstance();
@@ -76,7 +80,21 @@ public class Robot extends IterativeRobot {
     
     public void testPeriodic() {
     	
+    	frontLeftMotor.set(speed);
+    	Timer.delay(delay);
+    	frontLeftMotor.set(STOP);
     	
+    	frontRightMotor.set(speed);
+    	Timer.delay(delay);
+    	frontRightMotor.set(STOP);
+    	
+    	rearRightMotor.set(speed);
+    	Timer.delay(delay);
+    	rearRightMotor.set(STOP);
+    	
+    	rearLeftMotor.set(speed);
+    	Timer.delay(delay);
+    	rearLeftMotor.set(STOP);
     }
     
 }
