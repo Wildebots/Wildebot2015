@@ -70,6 +70,8 @@ public class Robot extends IterativeRobot {
 
     public void teleopPeriodic() {
     	
+    	System.out.println(stick.getX() + ", " + stick.getY());
+    	
     	myRobot.mecanumDrive_Cartesian(stick.getX(), stick.getY(), stick.getZ(), 0);
     	
     	//System.out.println(liftEncoder.getDirection() + ", " + liftEncoder.getDistance());
