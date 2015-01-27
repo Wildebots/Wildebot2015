@@ -23,11 +23,12 @@ public class Robot extends IterativeRobot {
 	final int frontRightChannel = 3;
 	final int rearLeftChannel = 2;
 	final int rearRightChannel = 1;
+	
 	final int joystickLeftX = 0;
 	final int joystickLeftY = 1;
-	final int joystickRightX  = 4;
+	final int joystickRightX  = 4; //xBox controller = 4
 	
-	final int joystickChannel	= 0;
+	final int joystickChannel	= 1;
 	
 	private Talon frontLeftMotor;
 	private Talon frontRightMotor;
@@ -53,7 +54,7 @@ public class Robot extends IterativeRobot {
         
         myRobot.setInvertedMotor(MotorType.kFrontRight, true);
     	myRobot.setInvertedMotor(MotorType.kFrontLeft, false);
-    	myRobot.setInvertedMotor(MotorType.kRearRight, false);
+    	myRobot.setInvertedMotor(MotorType.kRearRight, true);
     	myRobot.setInvertedMotor(MotorType.kRearLeft, false);
         
         stick = new Joystick(joystickChannel);
