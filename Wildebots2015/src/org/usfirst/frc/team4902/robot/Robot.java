@@ -23,7 +23,6 @@ public class Robot extends IterativeRobot {
 	final int frontRightChannel = 3;
 	final int rearLeftChannel = 2;
 	final int rearRightChannel = 1;
-	
 	final int joystickLeftX = 0;
 	final int joystickLeftY = 1;
 	final int joystickRightX  = 4;
