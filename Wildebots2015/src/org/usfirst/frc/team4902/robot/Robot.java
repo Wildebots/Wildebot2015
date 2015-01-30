@@ -1,6 +1,5 @@
 package org.usfirst.frc.team4902.robot;
 
-import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.IterativeRobot;
@@ -11,7 +10,6 @@ import edu.wpi.first.wpilibj.Timer;
 
 public class Robot extends IterativeRobot {
         
-        CameraServer server;
         Joystick stick;
         RobotDrive myRobot;
         Encoder liftEncoder;
@@ -35,16 +33,13 @@ public class Robot extends IterativeRobot {
         private Talon rearLeftMotor;
         private Talon rearRightMotor;
         
-        final double speed = 1.0;
+        final double speed = 0.2;
         final double STOP = 0.0;
         final double reverse = -1.0;
         final double delay = 1;
         
     public void robotInit() {
-        
-        server = CameraServer.getInstance();
-        server.setQuality(20);
-        server.startAutomaticCapture("cam0");
+       
         
         frontLeftMotor = new Talon(frontLeftChannel);
         frontRightMotor = new Talon(frontRightChannel);
@@ -53,10 +48,10 @@ public class Robot extends IterativeRobot {
         
         myRobot = new RobotDrive(frontLeftMotor, rearLeftMotor, frontRightMotor, rearRightMotor);
         
-        myRobot.setInvertedMotor(MotorType.kFrontRight, true);
-        myRobot.setInvertedMotor(MotorType.kFrontLeft, false);
-        myRobot.setInvertedMotor(MotorType.kRearRight, true);
-        myRobot.setInvertedMotor(MotorType.kRearLeft, false);
+        myRobot.setInvertedMotor(MotorType.kFrontRight, false);
+        myRobot.setInvertedMotor(MotorType.kFrontLeft, true);
+        myRobot.setInvertedMotor(MotorType.kRearRight, false);
+        myRobot.setInvertedMotor(MotorType.kRearLeft, true);
         
         stick = new Joystick(joystickChannel);
         
@@ -66,7 +61,7 @@ public class Robot extends IterativeRobot {
     }
 
     public void autonomousPeriodic() {
-        
+        myRobot.mecanumDrive_Cartesian(0, 0.2, 0, 0);
         
     }
 
@@ -83,7 +78,7 @@ public class Robot extends IterativeRobot {
     
     public void testPeriodic() {        
         
-        test2();
+        test3();
         
     }
     
@@ -149,6 +144,13 @@ public class Robot extends IterativeRobot {
         
         Timer.delay(5);
         
+    }
+    
+    public void test3() {
+    	frontLeftMotor.set(speed);
+    	frontRightMotor.set(speed);
+    	rearLeftMotor.set(speed);
+    	rearRightMotor.set(speed);
     }
     
 }
