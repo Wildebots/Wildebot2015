@@ -25,8 +25,9 @@ public class Robot extends IterativeRobot {
         final int joystickLeftX = 0;
         final int joystickLeftY = 1;
         final int joystickRightX  = 4; //xBox controller = 4
+        final double joystickZeroThreshold = 0.1;
         
-        final int joystickChannel       = 1;
+        final int joystickChannel       = 0;
         
         private Talon frontLeftMotor;
         private Talon frontRightMotor;
@@ -37,6 +38,8 @@ public class Robot extends IterativeRobot {
         final double STOP = 0.0;
         final double reverse = -1.0;
         final double delay = 1;
+        
+        
         
     public void robotInit() {
        
@@ -61,18 +64,34 @@ public class Robot extends IterativeRobot {
     }
 
     public void autonomousPeriodic() {
-        myRobot.mecanumDrive_Cartesian(0, 0.2, 0, 0);
+        myRobot.mecanumDrive_Cartesian(0, 0.25, 0, 0);
         
     }
 
+    public double joystickZeroed(double input) {
+    	if(Math.abs(input) <= joystickZeroThreshold) {
+    		return 0;
+    	}
+    	return input;
+    }
+    
     public void teleopPeriodic() {
         
         System.out.println(stick.getX() + ", " + stick.getY());
+        double inputX = joystickZeroed(stick.getX());
+        double inputY = joystickZeroed(stick.getY());
+        double inputZ = joystickZeroed(stick.getZ());
         
-        myRobot.mecanumDrive_Cartesian(stick.getX(), stick.getY(), stick.getZ(), 0);
+        //myRobot.mecanumDrive_Cartesian(inputX, -inputY, inputZ, 0);
         
-        //System.out.println(liftEncoder.getDirection() + ", " + liftEncoder.getDistance());
+        double x = stick.getX();
         
+        frontLeftMotor.set(x);
+        frontRightMotor.set(x);
+        rearLeftMotor.set(x);
+        rearRightMotor.set(x);
+
+                
         Timer.delay(0.005);
     }
     
