@@ -25,7 +25,7 @@ public class Robot extends IterativeRobot {
         final int joystickLeftX = 0;
         final int joystickLeftY = 1;
         final int joystickRightX  = 4; //xBox controller = 4
-        final double joystickZeroThreshold = 0.1;
+        final double joystickZeroThreshold = 0.15;
         
         final int joystickChannel       = 0;
         
@@ -82,14 +82,14 @@ public class Robot extends IterativeRobot {
         double inputY = joystickZeroed(stick.getY());
         double inputZ = joystickZeroed(stick.getZ());
         
-        //myRobot.mecanumDrive_Cartesian(inputX, -inputY, inputZ, 0);
+        myRobot.mecanumDrive_Cartesian(-inputX, -inputY, -0.25*inputZ, 0);
         
-        double x = stick.getX();
-        
-        frontLeftMotor.set(x);
-        frontRightMotor.set(x);
-        rearLeftMotor.set(x);
-        rearRightMotor.set(x);
+//        double x = stick.getX();
+//        
+//        frontLeftMotor.set(x);
+//        frontRightMotor.set(x);
+//        rearLeftMotor.set(x);
+//        rearRightMotor.set(x);
 
                 
         Timer.delay(0.005);
