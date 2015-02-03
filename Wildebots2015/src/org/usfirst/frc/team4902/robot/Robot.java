@@ -1,10 +1,12 @@
 package org.usfirst.frc.team4902.robot;
 
+import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.RobotDrive.MotorType;
+import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
 
@@ -33,6 +35,9 @@ public class Robot extends IterativeRobot {
         private Talon frontRightMotor;
         private Talon rearLeftMotor;
         private Talon rearRightMotor;
+        
+        private Compressor airCompressor;
+        private Solenoid s1;
         
         final double speed = 0.2;
         final double STOP = 0.0;
@@ -63,6 +68,13 @@ public class Robot extends IterativeRobot {
         stick.setAxisChannel(Joystick.AxisType.kZ, joystickRightX);
     }
 
+    public void Airsystem() {
+        airCompressor = new Compressor(1);  //Digtial I/O,Relay
+        airCompressor.start();                        // Start the air compressor
+
+        s1 = new Solenoid(1);                        // Solenoid port
+    }
+    
     public void autonomousPeriodic() {
         myRobot.mecanumDrive_Cartesian(0, 0.25, 0, 0);
         
@@ -166,6 +178,9 @@ public class Robot extends IterativeRobot {
     }
     
     public void test3() {
+    	
+    	s1.set(true);
+    	
     	frontLeftMotor.set(speed);
     	frontRightMotor.set(speed);
     	rearLeftMotor.set(speed);
