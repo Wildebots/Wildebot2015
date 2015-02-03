@@ -1,6 +1,7 @@
 package org.usfirst.frc.team4902.robot;
 
 import edu.wpi.first.wpilibj.Compressor;
+import edu.wpi.first.wpilibj.CounterBase.EncodingType;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.IterativeRobot;
@@ -70,6 +71,13 @@ public class Robot extends IterativeRobot {
         stick.setAxisChannel(Joystick.AxisType.kX, joystickLeftX);
         stick.setAxisChannel(Joystick.AxisType.kY, joystickLeftY);
         stick.setAxisChannel(Joystick.AxisType.kZ, joystickRightX);
+        
+        liftEncoder = new Encoder(1, 2, true, EncodingType.k4X);
+        liftEncoder.setMaxPeriod(.1);
+        liftEncoder.setMinRate(10);
+        liftEncoder.setDistancePerPulse(5);
+        liftEncoder.setReverseDirection(true);
+        liftEncoder.setSamplesToAverage(7);
     }
 
     public void Airsystem() {
@@ -189,6 +197,12 @@ public class Robot extends IterativeRobot {
     	frontRightMotor.set(speed);
     	rearLeftMotor.set(speed);
     	rearRightMotor.set(speed);
+    	
+    	liftEncoder.startLiveWindowMode();
+    	Timer.delay(1);
+    	liftEncoder.getDistance();
+    	liftEncoder.getDirection();
+    	liftEncoder.stopLiveWindowMode();
     }
     
 }
