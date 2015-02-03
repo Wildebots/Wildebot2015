@@ -11,6 +11,10 @@ import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
 
 public class Robot extends IterativeRobot {
+	
+	//http://wpilib.screenstepslive.com/s/3120/m/7912/l/85770-measuring-rotation-of-a-wheel-or-other-shaft-using-encoders
+	// encoder instructions
+	
         
         Joystick stick;
         RobotDrive myRobot;
