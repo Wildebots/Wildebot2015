@@ -98,7 +98,7 @@ public class Robot extends IterativeRobot {
         double inputY = joystickZeroed(stick.getY());
         double inputZ = joystickZeroed(stick.getZ());
         
-        myRobot.mecanumDrive_Cartesian(-inputX, -inputY, -0.25*inputZ, 0);
+        myRobot.mecanumDrive_Cartesian(-inputX, -inputY, -0.35*inputZ, 0);
         
 //        double x = stick.getX();
 //        
@@ -183,7 +183,7 @@ public class Robot extends IterativeRobot {
     
     public void test3() {
     	
-    	s1.set(true);
+    	//s1.set(true);
     	
     	frontLeftMotor.set(speed);
     	frontRightMotor.set(speed);
