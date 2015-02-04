@@ -72,7 +72,7 @@ public class Robot extends IterativeRobot {
         stick.setAxisChannel(Joystick.AxisType.kY, joystickLeftY);
         stick.setAxisChannel(Joystick.AxisType.kZ, joystickRightX);
         
-        liftEncoder = new Encoder(1, 2, true, EncodingType.k4X);
+        liftEncoder = new Encoder(0, 1, true, EncodingType.k4X);
         liftEncoder.setMaxPeriod(.1);
         liftEncoder.setMinRate(10);
         liftEncoder.setDistancePerPulse(5);
