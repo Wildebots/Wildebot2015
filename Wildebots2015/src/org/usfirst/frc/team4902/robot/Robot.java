@@ -16,7 +16,11 @@ public class Robot extends IterativeRobot {
 	//http://wpilib.screenstepslive.com/s/3120/m/7912/l/85770-measuring-rotation-of-a-wheel-or-other-shaft-using-encoders
 	// encoder instructions
 	
-        
+	int counter = 0;
+	double lowest1 = 0;
+	double lowest2 = 0;
+	
+	
         Joystick stick;
         RobotDrive myRobot;
         Encoder liftEncoder, wheel1Encoder, wheel2Encoder, wheel3Encoder, wheel4Encoder;
@@ -72,12 +76,12 @@ public class Robot extends IterativeRobot {
         stick.setAxisChannel(Joystick.AxisType.kY, joystickLeftY);
         stick.setAxisChannel(Joystick.AxisType.kZ, joystickRightX);
         
-        liftEncoder = new Encoder(0, 1, true, EncodingType.k4X);
-        liftEncoder.setMaxPeriod(.1);
-        liftEncoder.setMinRate(10);
-        liftEncoder.setDistancePerPulse(5);
-        liftEncoder.setReverseDirection(true);
-        liftEncoder.setSamplesToAverage(7);
+//        liftEncoder = new Encoder(2, 3, true, EncodingType.k4X);
+//        liftEncoder.setMaxPeriod(.1);
+//        liftEncoder.setMinRate(10);
+//        liftEncoder.setDistancePerPulse(5);
+//        liftEncoder.setReverseDirection(true);
+//        liftEncoder.setSamplesToAverage(7);
         
         wheel1Encoder = new Encoder(1, 2, true, EncodingType.k4X);
         wheel1Encoder.setMaxPeriod(.1);
@@ -86,26 +90,26 @@ public class Robot extends IterativeRobot {
         wheel1Encoder.setReverseDirection(true);
         wheel1Encoder.setSamplesToAverage(7);
         
-        wheel2Encoder = new Encoder(1, 2, true, EncodingType.k4X);
-        wheel2Encoder.setMaxPeriod(.1);
-        wheel2Encoder.setMinRate(10);
-        wheel2Encoder.setDistancePerPulse(5);
-        wheel2Encoder.setReverseDirection(true);
-        wheel2Encoder.setSamplesToAverage(7);
+//        wheel2Encoder = new Encoder(2, 3, true, EncodingType.k4X);
+//        wheel2Encoder.setMaxPeriod(.1);
+//        wheel2Encoder.setMinRate(10);
+//        wheel2Encoder.setDistancePerPulse(5);
+//        wheel2Encoder.setReverseDirection(true);
+//        wheel2Encoder.setSamplesToAverage(7);
         
-        wheel3Encoder = new Encoder(1, 2, true, EncodingType.k4X);
-        wheel3Encoder.setMaxPeriod(.1);
-        wheel3Encoder.setMinRate(10);
-        wheel3Encoder.setDistancePerPulse(5);
-        wheel3Encoder.setReverseDirection(true);
-        wheel3Encoder.setSamplesToAverage(7);
+//        wheel3Encoder = new Encoder(2, 3, true, EncodingType.k4X);
+//        wheel3Encoder.setMaxPeriod(.1);
+//        wheel3Encoder.setMinRate(10);
+//        wheel3Encoder.setDistancePerPulse(5);
+//        wheel3Encoder.setReverseDirection(true);
+//        wheel3Encoder.setSamplesToAverage(7);
         
-        wheel4Encoder = new Encoder(1, 2, true, EncodingType.k4X);
-        wheel4Encoder.setMaxPeriod(.1);
-        wheel4Encoder.setMinRate(10);
-        wheel4Encoder.setDistancePerPulse(5);
-        wheel4Encoder.setReverseDirection(true);
-        wheel4Encoder.setSamplesToAverage(7);
+//        wheel4Encoder = new Encoder(2, 3, true, EncodingType.k4X);
+//        wheel4Encoder.setMaxPeriod(.1);
+//        wheel4Encoder.setMinRate(10);
+//        wheel4Encoder.setDistancePerPulse(5);
+//        wheel4Encoder.setReverseDirection(true);
+//        wheel4Encoder.setSamplesToAverage(7);
     }
 
     public void Airsystem() {
@@ -221,50 +225,55 @@ public class Robot extends IterativeRobot {
     	
     	//s1.set(true);
     	double[] array = new double[4];
-    	double lowest;
     	
     	wheel1Encoder.startLiveWindowMode();
-    	wheel2Encoder.startLiveWindowMode();
-    	wheel3Encoder.startLiveWindowMode();
-    	wheel4Encoder.startLiveWindowMode();
+    	//wheel2Encoder.startLiveWindowMode();
+    	//wheel3Encoder.startLiveWindowMode();
+    	//wheel4Encoder.startLiveWindowMode();
     	Timer.delay(1);
     	
     	array[0] = wheel1Encoder.getDistance();
+    	lowest1 = wheel1Encoder.getDistance();
     	wheel1Encoder.getDirection();
-    	
-    	array[1] = wheel2Encoder.getDistance();
-    	wheel2Encoder.getDirection();
-    	
-    	array[2] = wheel3Encoder.getDistance();
-    	wheel3Encoder.getDirection();
-    	
-    	array[4] = wheel4Encoder.getDistance();
-    	wheel4Encoder.getDirection();
+//    	
+//    	array[1] = wheel2Encoder.getDistance();
+//    	wheel2Encoder.getDirection();
+//    	
+//    	array[2] = wheel3Encoder.getDistance();
+//    	wheel3Encoder.getDirection();
+//    	
+//    	array[4] = wheel4Encoder.getDistance();
+//    	wheel4Encoder.getDirection();
     	
     	wheel1Encoder.stopLiveWindowMode();
-    	wheel2Encoder.stopLiveWindowMode();
-    	wheel3Encoder.stopLiveWindowMode();
-    	wheel4Encoder.stopLiveWindowMode();
+//    	wheel2Encoder.stopLiveWindowMode();
+//    	wheel3Encoder.stopLiveWindowMode();
+//    	wheel4Encoder.stopLiveWindowMode();
     	
-    	lowest = array[0];
-    	for(int i = 0; i < 4; i++){
-    		for(int j = 0; j < 4; j++){
-    			if(array[i] < array[j]){
-    				lowest = array[j];
-    			}
-    		}
-    		
-    	}
+//    	lowest = array[0];
+//    	for(int i = 0; i < 4; i++){
+//    		for(int j = 0; j < 4; j++){
+//    			if(array[i] < array[j]){
+//    				lowest = array[j];
+//    			}
+//    		}
+//    		
+//    	}
     	
-    	double ratio1 = array[0]/lowest;
-    	double ratio2 = array[1]/lowest;
-    	double ratio3 = array[2]/lowest;
-    	double ratio4 = array[3]/lowest;
+//    	double ratio1 = array[0]/lowest;
+//    	double ratio2 = array[1]/lowest;
+//    	double ratio3 = array[2]/lowest;
+//    	double ratio4 = array[3]/lowest;
     	
-    	frontLeftMotor.set(speed/ratio1);
-    	frontRightMotor.set(speed/ratio2);
-    	rearLeftMotor.set(speed/ratio3);
-    	rearRightMotor.set(speed/ratio4);
+    	lowest1 = wheel1Encoder.getDistance();
+    	System.out.println(lowest1-lowest2);
+    	
+    	lowest2 = lowest1;
+    	
+//    	frontLeftMotor.set(speed/ratio1);
+//    	frontRightMotor.set(speed/ratio2);
+//    	rearLeftMotor.set(speed/ratio3);
+//    	rearRightMotor.set(speed/ratio4);
     	
     }
     
