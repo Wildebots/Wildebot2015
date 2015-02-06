@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.RobotDrive.MotorType;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.Gyro;
 
 public class Robot extends IterativeRobot {
 	
@@ -24,6 +25,7 @@ public class Robot extends IterativeRobot {
         Joystick stick;
         RobotDrive myRobot;
         Encoder liftEncoder, wheel1Encoder, wheel2Encoder, wheel3Encoder, wheel4Encoder;
+        Gyro gyro;
         
         final int liftChannelA = 5;
         final int liftChannelB = 6;
@@ -75,6 +77,9 @@ public class Robot extends IterativeRobot {
         stick.setAxisChannel(Joystick.AxisType.kX, joystickLeftX);
         stick.setAxisChannel(Joystick.AxisType.kY, joystickLeftY);
         stick.setAxisChannel(Joystick.AxisType.kZ, joystickRightX);
+        
+        gyro = new Gyro(0);
+    	gyro.initGyro();
         
 //        liftEncoder = new Encoder(2, 3, true, EncodingType.k4X);
 //        liftEncoder.setMaxPeriod(.1);
@@ -153,7 +158,8 @@ public class Robot extends IterativeRobot {
     
     public void testPeriodic() {        
         
-        test3();
+        //test3();
+    	test4();
         
     }
     
@@ -275,6 +281,10 @@ public class Robot extends IterativeRobot {
 //    	rearLeftMotor.set(speed/ratio3);
 //    	rearRightMotor.set(speed/ratio4);
     	
+    }
+    
+    public void test4() {
+    	System.out.println(gyro.getAngle());
     }
     
 }
