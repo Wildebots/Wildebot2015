@@ -39,6 +39,8 @@ public class Robot extends IterativeRobot {
         final int rearLeftChannel = 2;
         final int rearRightChannel = 1;
         
+        final int liftChannel = 4;
+        
         final int joystickLeftX = 0;
         final int joystickLeftY = 1;
         final int joystickRightX  = 4; //xBox controller = 4
@@ -50,6 +52,8 @@ public class Robot extends IterativeRobot {
         private Talon frontRightMotor;
         private Talon rearLeftMotor;
         private Talon rearRightMotor;
+        
+        private Talon liftMotor;
         
         private Compressor airCompressor;
         private Solenoid s1;
@@ -70,6 +74,8 @@ public class Robot extends IterativeRobot {
         frontRightMotor = new Talon(frontRightChannel);
         rearLeftMotor = new Talon(rearLeftChannel);
         rearRightMotor = new Talon(rearRightChannel);
+        
+        liftMotor = new Talon(liftChannel);
         
         myRobot = new RobotDrive(frontLeftMotor, rearLeftMotor, frontRightMotor, rearRightMotor);
         
@@ -294,14 +300,35 @@ public class Robot extends IterativeRobot {
     }
     
     public void lift() {
-    	boolean testsa = stick.getRawButton(1);
-    	System.out.println(testsa);
-    }
-    
-    public void lift(){
-    	boolean testSA = stick.getRawButton(1);
+    	boolean applyBrake = true;
+    	boolean liftUp = stick.getRawButton(1);
+    	System.out.println(liftUp);
+    	boolean liftDown = stick.getRawButton(2); //Not sure which buttons these are on the controller
+    	System.out.println(liftDown);
     	
-    	System.out.println(testSA);
+    	if(applyBrake == true) {
+    		
+    	}
+    	
+    	if(liftUp == true) {
+    		applyBrake = false;
+    		liftMotor.set(speed);
+            Timer.delay(delay);
+            liftMotor.set(STOP);
+    	}
+    	else {
+    		applyBrake = true;
+    	}
+    	
+    	if(liftDown == true) {
+    		applyBrake = false;
+    		liftMotor.set(reverse);
+            Timer.delay(delay);
+            liftMotor.set(STOP);
+    	}
+    	else {
+    		applyBrake = true;
+    	}
     }
     
     public void PID(){
