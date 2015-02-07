@@ -285,6 +285,31 @@ public class Robot extends IterativeRobot {
     
     public void test4() {
     	System.out.println(gyro.getAngle());
+    	gyroPID();
+    }
+    
+    
+    /**
+     * Auto corrects the driving of the robot to drive straight
+     */
+    public void gyroPID(){
+    	double gyroAngle = gyro.getAngle();
+    	
+    	if(gyroAngle > 0){  //turn left if turned right
+    		frontRightMotor.set(speed*2);
+    		rearRightMotor.set(speed*2);
+    	}
+    	if(gyroAngle < 0){ //turn right if turned left
+    		frontLeftMotor.set(speed*2);
+    		rearLeftMotor.set(speed*2);
+    	}
+    	else{ //set all the wheels to the same speed if straight
+    		frontRightMotor.set(speed);
+    		rearRightMotor.set(speed);
+    		frontLeftMotor.set(speed);
+    		rearLeftMotor.set(speed);
+    	}
+    	
     }
     
 }
