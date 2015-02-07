@@ -5,6 +5,8 @@ import edu.wpi.first.wpilibj.CounterBase.EncodingType;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.PIDController;
+import edu.wpi.first.wpilibj.PIDOutput;
 import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.RobotDrive.MotorType;
 import edu.wpi.first.wpilibj.Solenoid;
@@ -26,6 +28,8 @@ public class Robot extends IterativeRobot {
         RobotDrive myRobot;
         Encoder liftEncoder, wheel1Encoder, wheel2Encoder, wheel3Encoder, wheel4Encoder;
         Gyro gyro;
+        PIDController pidController;
+        PIDOutput pidOutput;
         
         final int liftChannelA = 5;
         final int liftChannelB = 6;
@@ -55,6 +59,8 @@ public class Robot extends IterativeRobot {
         final double reverse = -1.0;
         final double delay = 1;
         
+        private boolean isAngleZero = true;
+        private double  PIDTime = 0;
         
         
     public void robotInit() {
@@ -115,6 +121,14 @@ public class Robot extends IterativeRobot {
 //        wheel4Encoder.setDistancePerPulse(5);
 //        wheel4Encoder.setReverseDirection(true);
 //        wheel4Encoder.setSamplesToAverage(7);
+        
+        //p is the gyro angle
+        //i is the time away from 0
+        //d is the change in angle over a set time
+        
+        pidController = new PIDController(gyro.getAngle(), 0, 0, gyro, frontRightMotor);
+        
+        
     }
 
     public void Airsystem() {
@@ -161,6 +175,8 @@ public class Robot extends IterativeRobot {
         //test3();
     	//test4();
     	test2();
+    	lift();
+    	PID();
         
     }
     
@@ -274,10 +290,34 @@ public class Robot extends IterativeRobot {
     		rearLeftMotor.set(speed);
     	}
     	
+    	
     }
     
     public void test5() {
     	//This is a test method
+    }
+    
+    public void lift(){
+    	boolean testSA = stick.getRawButton(1);
+    	
+    	System.out.println(testSA);
+    }
+    
+    public void PID(){
+    	
+        //p is the gyro angle
+        //i is the time away from 0
+        //d is the change in angle over a set time
+    	
+    	if(gyro.getAngle() != 0){
+    		if(isAngleZero == true){
+    			PIDTime = 0;
+    		}
+        	// pidController = new PIDController(gyro.getAngle(), i, d, gyro, frontLeftMotor);
+        	//pidController.setPID(gyro.getAngle(), i, d);
+    	}
+
+       
     }
     
 }
