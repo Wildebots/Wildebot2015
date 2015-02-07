@@ -276,4 +276,8 @@ public class Robot extends IterativeRobot {
     	
     }
     
+    public void test5() {
+    	//This is a test method
+    }
+    
 }
