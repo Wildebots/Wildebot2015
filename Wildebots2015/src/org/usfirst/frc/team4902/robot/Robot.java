@@ -159,7 +159,8 @@ public class Robot extends IterativeRobot {
     public void testPeriodic() {        
         
         //test3();
-    	test4();
+    	//test4();
+    	test2();
         
     }
     
@@ -184,47 +185,10 @@ public class Robot extends IterativeRobot {
     }
     
     public void test2(){
-    
         frontLeftMotor.set(speed);
-        Timer.delay(1);
-        frontLeftMotor.set(STOP);
-        Timer.delay(1);
-        frontLeftMotor.set(reverse);
-        Timer.delay(1);
-        frontLeftMotor.set(STOP);
-        
-        Timer.delay(5);
-        
         frontRightMotor.set(speed);
-        Timer.delay(1);
-        frontRightMotor.set(STOP);
-        Timer.delay(1);
-        frontRightMotor.set(reverse);
-        Timer.delay(1);
-        frontRightMotor.set(STOP);
-        
-        Timer.delay(5);
-        
         rearRightMotor.set(speed);
-        Timer.delay(1);
-        rearRightMotor.set(STOP);
-        Timer.delay(1);
-        rearRightMotor.set(reverse);
-        Timer.delay(1);
-        rearRightMotor.set(STOP);
-        
-        Timer.delay(5);
-        
         rearLeftMotor.set(speed);
-        Timer.delay(1);
-        rearLeftMotor.set(STOP);
-        Timer.delay(1);
-        rearLeftMotor.set(reverse);
-        Timer.delay(1);
-        rearLeftMotor.set(STOP);
-        
-        Timer.delay(5);
-        
     }
     
     public void test3() {
