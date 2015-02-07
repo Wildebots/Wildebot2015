@@ -76,6 +76,7 @@ public class Robot extends IterativeRobot {
         rearRightMotor = new Talon(rearRightChannel);
         
         liftMotor = new Talon(liftChannel);
+        s1.equals(true);
         
         myRobot = new RobotDrive(frontLeftMotor, rearLeftMotor, frontRightMotor, rearRightMotor);
         
@@ -307,7 +308,10 @@ public class Robot extends IterativeRobot {
     	System.out.println(liftDown);
     	
     	if(applyBrake == true) {
-    		
+    		s1.equals(true);
+    	}
+    	else if(applyBrake == false) {
+    		s1.equals(false);
     	}
     	
     	if(liftUp == true) {
