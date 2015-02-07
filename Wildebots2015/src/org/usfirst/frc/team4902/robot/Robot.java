@@ -276,8 +276,9 @@ public class Robot extends IterativeRobot {
     	
     }
     
-    public void test5() {
-    	//This is a test method
+    public void lift() {
+    	boolean testsa = stick.getRawButton(1);
+    	System.out.println(testsa);
     }
     
 }
