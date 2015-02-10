@@ -28,8 +28,8 @@ public class Robot extends IterativeRobot {
         RobotDrive myRobot;
         Encoder liftEncoder, wheel1Encoder, wheel2Encoder, wheel3Encoder, wheel4Encoder;
         Gyro gyro;
-        PIDController pidController;
-        PIDOutput pidOutput;
+        PIDController pidController1, pidController2, pidController3, pidController4;
+        PIDOutput pidOutput1, pidOutput2, pidOutput3, pidOutput4;
         
         final int liftChannelA = 5;
         final int liftChannelB = 6;
@@ -63,8 +63,22 @@ public class Robot extends IterativeRobot {
         final double reverse = -1.0;
         final double delay = 1;
         
-        private boolean isAngleZero = true;
-        private double  PIDTime = 0;
+        private boolean isAngleZero1 = true;
+        private double  PIDTime1 = 0;
+        private double PIDSpeed1 = 0;
+        private double changeAngle1 = 0;
+        private boolean isAngleZero2 = true;
+        private double  PIDTime2 = 0;
+        private double PIDSpeed2 = 0;
+        private double changeAngle2 = 0;
+        private boolean isAngleZero3 = true;
+        private double  PIDTime3 = 0;
+        private double PIDSpeed3 = 0;
+        private double changeAngle3 = 0;
+        private boolean isAngleZero4 = true;
+        private double  PIDTime4 = 0;
+        private double PIDSpeed4 = 0;
+        private double changeAngle4 = 0;
         
         
     public void robotInit() {
@@ -80,10 +94,10 @@ public class Robot extends IterativeRobot {
         
         myRobot = new RobotDrive(frontLeftMotor, rearLeftMotor, frontRightMotor, rearRightMotor);
         
-        myRobot.setInvertedMotor(MotorType.kFrontRight, false);
-        myRobot.setInvertedMotor(MotorType.kFrontLeft, true);
-        myRobot.setInvertedMotor(MotorType.kRearRight, false);
-        myRobot.setInvertedMotor(MotorType.kRearLeft, true);
+        myRobot.setInvertedMotor(MotorType.kFrontRight, true);
+        myRobot.setInvertedMotor(MotorType.kFrontLeft, false);
+        myRobot.setInvertedMotor(MotorType.kRearRight, true);
+        myRobot.setInvertedMotor(MotorType.kRearLeft, false);
         
         stick = new Joystick(joystickChannel);
         
@@ -93,6 +107,7 @@ public class Robot extends IterativeRobot {
         
         gyro = new Gyro(0);
     	gyro.initGyro();
+    	gyro.reset();
         
 //        liftEncoder = new Encoder(2, 3, true, EncodingType.k4X);
 //        liftEncoder.setMaxPeriod(.1);
@@ -133,7 +148,10 @@ public class Robot extends IterativeRobot {
         //i is the time away from 0
         //d is the change in angle over a set time
         
-        pidController = new PIDController(gyro.getAngle(), 0, 0, gyro, frontRightMotor);
+        pidController1 = new PIDController(gyro.getAngle(), 0, 0, gyro, frontRightMotor);
+        pidController2 = new PIDController(gyro.getAngle(), 0, 0, gyro, frontLeftMotor);
+        pidController3 = new PIDController(gyro.getAngle(), 0, 0, gyro, rearRightMotor);
+        pidController4 = new PIDController(gyro.getAngle(), 0, 0, gyro, rearLeftMotor);
         
         
     }
@@ -180,10 +198,10 @@ public class Robot extends IterativeRobot {
     public void testPeriodic() {        
         
         //test3();
-    	//test4();
-    	test2();
-    	lift();
-    	PID();
+    	test4();
+    	//test2();
+    	//lift();
+    	//PID();
         
     }
     
@@ -209,8 +227,8 @@ public class Robot extends IterativeRobot {
     
     public void test2(){
         frontLeftMotor.set(speed);
-        frontRightMotor.set(speed);
-        rearRightMotor.set(speed);
+        frontRightMotor.set(speed*-1);
+        rearRightMotor.set(speed*-1);
         rearLeftMotor.set(speed);
     }
     
@@ -272,32 +290,7 @@ public class Robot extends IterativeRobot {
     
     public void test4() {
     	System.out.println(gyro.getAngle());
-    	gyroPID();
-    }
-    
-    
-    /**
-     * Auto corrects the driving of the robot to drive straight
-     */
-    public void gyroPID(){
-    	double gyroAngle = gyro.getAngle();
-    	
-    	if(gyroAngle > 0){  //turn left if turned right
-    		frontRightMotor.set(speed*2);
-    		rearRightMotor.set(speed*2);
-    	}
-    	if(gyroAngle < 0){ //turn right if turned left
-    		frontLeftMotor.set(speed*2);
-    		rearLeftMotor.set(speed*2);
-    	}
-    	else{ //set all the wheels to the same speed if straight
-    		frontRightMotor.set(speed);
-    		rearRightMotor.set(speed);
-    		frontLeftMotor.set(speed);
-    		rearLeftMotor.set(speed);
-    	}
-    	
-    	
+
     }
     
     public void lift() {
@@ -342,11 +335,51 @@ public class Robot extends IterativeRobot {
         //d is the change in angle over a set time
     	
     	if(gyro.getAngle() != 0){
-    		if(isAngleZero == true){
-    			PIDTime = 0;
+    		if((isAngleZero1 == true)&&(gyro.getAngle() != 0)){
+    			PIDTime1 = 0;
+    			isAngleZero1 = false;
+    			changeAngle1 = gyro.getAngle();
     		}
+    		if((isAngleZero2 == true)&&(gyro.getAngle() != 0)){
+    			PIDTime2 = 0;
+    			isAngleZero2 = false;
+    			changeAngle2 = gyro.getAngle();
+    		}
+    		if((isAngleZero3 == true)&&(gyro.getAngle() != 0)){
+    			PIDTime3 = 0;
+    			isAngleZero3 = false;
+    			changeAngle3 = gyro.getAngle();
+    		}
+    		if((isAngleZero4 == true)&&(gyro.getAngle() != 0)){
+    			PIDTime4 = 0;
+    			isAngleZero4 = false;
+    			changeAngle4 = gyro.getAngle();
+    		}
+    		
+    		
+    		PIDSpeed1 = (changeAngle1-gyro.getAngle())/PIDTime1;
+    		PIDSpeed2 = (changeAngle2-gyro.getAngle())/PIDTime2;
+    		PIDSpeed3 = (changeAngle3-gyro.getAngle())/PIDTime3;
+    		PIDSpeed4 = (changeAngle4-gyro.getAngle())/PIDTime4;
+    		
         	// pidController = new PIDController(gyro.getAngle(), i, d, gyro, frontLeftMotor);
-        	//pidController.setPID(gyro.getAngle(), i, d);
+        	pidController1.setPID(gyro.getAngle(), PIDTime1, PIDSpeed1);
+        	pidController2.setPID(gyro.getAngle(), PIDTime2, PIDSpeed2);
+        	pidController3.setPID(gyro.getAngle(), PIDTime3, PIDSpeed3);
+        	pidController4.setPID(gyro.getAngle(), PIDTime4, PIDSpeed4);
+        	System.out.println(gyro.getAngle());
+        	System.out.println(pidController1.get() + ", " + pidController2.get() + ", " + pidController3.get() + ", " + pidController4.get());
+    		PIDTime1++;
+    		PIDTime2++;
+    		PIDTime3++;
+    		PIDTime4++;
+    		
+    		if(gyro.getAngle() == 0){
+    			isAngleZero1 = true;
+    			isAngleZero2 = true;
+    			isAngleZero3 = true;
+    			isAngleZero4 = true;
+    		}
     	}
 
        
