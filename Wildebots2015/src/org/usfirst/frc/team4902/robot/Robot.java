@@ -64,14 +64,23 @@ public class Robot extends IterativeRobot {
         final double reverse = -1.0;
         final double delay = 1;
         
+        private double offset;
+        
         private PIDOutput pidOutput;       
         
     public class PrintPIDOutput implements PIDOutput{    
     	
     	 public void pidWrite(double output){
-    		 System.out.println(pidOutput);
+    		 
+    		 System.out.println(output);
     	 }
     	
+    }
+    public class OffsetOutput implements PIDOutput{
+    	public void pidWrite (double output) {
+    		System.out.println(output);
+    		offset = output;
+    	}
     }
         
     public void robotInit() {
@@ -110,7 +119,8 @@ public class Robot extends IterativeRobot {
         wheel1Encoder.setReverseDirection(true);
         wheel1Encoder.setSamplesToAverage(7);
         
-
+        pidOutput = new OffsetOutput();
+        pidController = new PIDController(gyro.getAngle(), 0, 0, gyro, pidOutput);
         
     }
 
@@ -135,10 +145,7 @@ public class Robot extends IterativeRobot {
     
     public void teleopInit(){
     	
-    	System.out.println("pidOutput create");
-        pidOutput = new PrintPIDOutput();
-        System.out.println("made it through pidOutput");
-        pidController = new PIDController(gyro.getAngle(), 0, 0, gyro, pidOutput);
+
         System.out.println("created the pid Controller");
         pidController.enable();
     }
@@ -150,18 +157,30 @@ public class Robot extends IterativeRobot {
         double inputY = joystickZeroed(stick.getY());
         double inputZ = joystickZeroed(stick.getZ());
         
-        myRobot.mecanumDrive_Cartesian(-inputX, -inputY, -0.35*inputZ, 0);
+        myRobot.mecanumDrive_Cartesian(-inputX, -inputY, -0.35*inputZ+offset, 0);
                 
         Timer.delay(0.005);
     }
     
+    public void disabledInit() {
+    	if(pidController != null) {
+    		gyro.reset();
+    		pidController.disable();
+    	}
+    }
+    
+    @Override
+    public void testInit() {
+        pidController.enable();
+    }
+    
     public void testPeriodic() {     
     	
-        double inputX = joystickZeroed(stick.getX());
-        double inputY = joystickZeroed(stick.getY());
-        double inputZ = joystickZeroed(stick.getZ());
+        double inputX = 0;
+        double inputY = -0.2;
+        double inputZ = 0;
         
-        myRobot.mecanumDrive_Cartesian(-inputX, -inputY, -0.35*inputZ, 0);
+        myRobot.mecanumDrive_Cartesian(-inputX, -inputY, -0.35*inputZ-offset, 0);
         
         Timer.delay(0.005);
         
