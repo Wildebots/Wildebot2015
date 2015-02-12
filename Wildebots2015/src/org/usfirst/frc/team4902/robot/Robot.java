@@ -57,7 +57,7 @@ public class Robot extends IterativeRobot {
         private Talon liftMotor;
         
         private Compressor airCompressor;
-        private Solenoid s1;
+        private Solenoid s1, s2;
         
         final double speed = 0.2;
         final double STOP = 0.0;
@@ -66,7 +66,9 @@ public class Robot extends IterativeRobot {
         
         private double offset;
         
-        private PIDOutput pidOutput;       
+        private PIDOutput pidOutput;     
+        
+        private boolean turning;
         
     public class PrintPIDOutput implements PIDOutput{    
     	
@@ -122,6 +124,8 @@ public class Robot extends IterativeRobot {
         pidOutput = new OffsetOutput();
         pidController = new PIDController(gyro.getAngle(), 0, 0, gyro, pidOutput);
         
+        turning = false;
+        
     }
 
     public void Airsystem() {
@@ -129,6 +133,7 @@ public class Robot extends IterativeRobot {
         airCompressor.start();                        // Start the air compressor
 
         s1 = new Solenoid(1);                        // Solenoid port
+        s2 = new Solenoid(2);
     }
     
     public void autonomousPeriodic() {
@@ -143,21 +148,43 @@ public class Robot extends IterativeRobot {
     	return input;
     }
     
+    /**
+     * Checks whether the robot is turning and resets the gyro after turning
+     * @param input
+     */
+    public void turning(double input){
+    	if(Math.abs(input) > joystickZeroThreshold){
+    		pidController.disable();
+    		offset = 0;
+    		turning = true;
+    	}
+    	if((turning == true)&&(Math.abs(input) < joystickZeroThreshold)){
+    		gyro.reset();
+    		pidController.enable();
+    		turning = false;
+    	}
+    }
+    
+    /**
+     * Initialize for teleop
+     */
     public void teleopInit(){
-    	
-
         System.out.println("created the pid Controller");
         pidController.enable();
     }
     
+    /**
+     * Loop for the teleop phase
+     */
     public void teleopPeriodic() {
-        
         //System.out.println(stick.getX() + ", " + stick.getY());
         double inputX = joystickZeroed(stick.getX());
         double inputY = joystickZeroed(stick.getY());
         double inputZ = joystickZeroed(stick.getZ());
         
         myRobot.mecanumDrive_Cartesian(-inputX, -inputY, -0.35*inputZ+offset, 0);
+        
+        turning(inputZ);
                 
         Timer.delay(0.005);
     }
@@ -175,6 +202,8 @@ public class Robot extends IterativeRobot {
     }
     
     public void testPeriodic() {     
+    	
+    	solenoidTest();
     	
         double inputX = 0;
         double inputY = -0.2;
@@ -307,9 +336,11 @@ public class Robot extends IterativeRobot {
     	}
     }
     
-    public void pidCorrection(){
-    	
-    	//pidController.setPID(temp, PIDTime1, PIDSpeed1);
-    
+    public void solenoidTest(){
+    	s1.set(true);
+    	s2.set(true);
+    	Timer.delay(5);
+    	s1.set(false);
+    	s1.set(false);
     }
 }
