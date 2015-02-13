@@ -2,6 +2,7 @@ package org.usfirst.frc.team4902.robot;
 
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.CounterBase.EncodingType;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.IterativeRobot;
@@ -13,6 +14,7 @@ import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Gyro;
+
 import java.util.*;
 
 public class Robot extends IterativeRobot {
@@ -48,6 +50,7 @@ public class Robot extends IterativeRobot {
         final double joystickZeroThreshold = 0.15;
         
         final int joystickChannel       = 0;
+        final int moduleNum = 0;
         
         private Talon frontLeftMotor;
         private Talon frontRightMotor;
@@ -55,6 +58,7 @@ public class Robot extends IterativeRobot {
         private Talon rearRightMotor;
         
         private Talon liftMotor;
+        private DigitalInput topLimit, bottomLimit;
         
         private Compressor airCompressor;
         private Solenoid s1, s2;
@@ -64,11 +68,14 @@ public class Robot extends IterativeRobot {
         final double reverse = -1.0;
         final double delay = 1;
         
+        final int rButton = 6;
+        final int lButton = 5;
+        
         private double offset;
         
         private PIDOutput pidOutput;     
         
-        private boolean turning;
+        private boolean turning, startedCompressor;
         
     public class PrintPIDOutput implements PIDOutput{    
     	
@@ -125,15 +132,16 @@ public class Robot extends IterativeRobot {
         pidController = new PIDController(gyro.getAngle(), 0, 0, gyro, pidOutput);
         
         turning = false;
+        startedCompressor = false;
         
-    }
-
-    public void Airsystem() {
-        airCompressor = new Compressor(1);  //Digtial I/O,Relay
-        airCompressor.start();                        // Start the air compressor
-
-        s1 = new Solenoid(1);                        // Solenoid port
-        s2 = new Solenoid(2);
+        airCompressor = new Compressor(moduleNum);  //Digtial I/O,Relay\
+        
+        s1 = new Solenoid(moduleNum,2);                        // Solenoid port
+        s2 = new Solenoid(moduleNum,3);
+        
+        topLimit = new DigitalInput(0);
+        bottomLimit = new DigitalInput(1);
+        
     }
     
     public void autonomousPeriodic() {
@@ -159,7 +167,7 @@ public class Robot extends IterativeRobot {
     		turning = true;
     	}
     	if((turning == true)&&(Math.abs(input) < joystickZeroThreshold)){
-    		gyro.reset();
+    		pidController.setSetpoint(gyro.getAngle());
     		pidController.enable();
     		turning = false;
     	}
@@ -182,9 +190,9 @@ public class Robot extends IterativeRobot {
         double inputY = joystickZeroed(stick.getY());
         double inputZ = joystickZeroed(stick.getZ());
         
-        myRobot.mecanumDrive_Cartesian(-inputX, -inputY, -0.35*inputZ+offset, 0);
-        
         turning(inputZ);
+        
+        myRobot.mecanumDrive_Cartesian(-inputX, -inputY, -0.35*inputZ+offset, 0);
                 
         Timer.delay(0.005);
     }
@@ -203,13 +211,20 @@ public class Robot extends IterativeRobot {
     
     public void testPeriodic() {     
     	
+    	if(startedCompressor == false){
+    		startCompressor();
+    	}
+    	else{
+    		startedCompressor = true;
+    	}
+    	
     	solenoidTest();
     	
         double inputX = 0;
-        double inputY = -0.2;
+        double inputY = -0.0;
         double inputZ = 0;
         
-        myRobot.mecanumDrive_Cartesian(-inputX, -inputY, -0.35*inputZ-offset, 0);
+        myRobot.mecanumDrive_Cartesian(-inputX, -inputY, -0.35*inputZ-offset*0, 0);
         
         Timer.delay(0.005);
         
@@ -301,6 +316,36 @@ public class Robot extends IterativeRobot {
     	
     }
     
+    
+    
+    public void manualLift() {
+    	
+    	if(stick.getRawButton(rButton)) {
+    		closeGripper();
+    	}
+    	else if (stick.getRawButton(lButton)) {
+    		openGripper();
+    	}
+    	
+    	if(topLimit.get()){
+    		liftMotor.set(STOP);
+    	}
+    	else if(bottomLimit.get()){
+    		liftMotor.set(STOP);
+    		liftEncoder.reset();
+    	}
+    }
+    
+    public void closeGripper(){
+		s1.set(true);
+		s2.set(false);
+    }
+    
+    public void openGripper(){
+    	s1.set(false);
+    	s2.set(true);
+    }
+    
     public void lift() {
     	boolean applyBrake = true;
     	boolean liftUp = stick.getRawButton(1);
@@ -318,7 +363,6 @@ public class Robot extends IterativeRobot {
     	if(liftUp == true) {
     		applyBrake = false;
     		liftMotor.set(speed);
-            Timer.delay(delay);
             liftMotor.set(STOP);
     	}
     	else {
@@ -328,12 +372,15 @@ public class Robot extends IterativeRobot {
     	if(liftDown == true) {
     		applyBrake = false;
     		liftMotor.set(reverse);
-            Timer.delay(delay);
             liftMotor.set(STOP);
     	}
     	else {
     		applyBrake = true;
     	}
+    }
+    
+    public void startCompressor(){
+        airCompressor.start();
     }
     
     public void solenoidTest(){
