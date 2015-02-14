@@ -192,6 +192,8 @@ public class Robot extends IterativeRobot {
         
         turning(inputZ);
         
+        manualLift();
+        
         myRobot.mecanumDrive_Cartesian(-inputX, -inputY, -0.35*inputZ+offset, 0);
                 
         Timer.delay(0.005);
@@ -217,8 +219,6 @@ public class Robot extends IterativeRobot {
     	else{
     		startedCompressor = true;
     	}
-    	
-    	solenoidTest();
     	
         double inputX = 0;
         double inputY = -0.0;
@@ -381,13 +381,5 @@ public class Robot extends IterativeRobot {
     
     public void startCompressor(){
         airCompressor.start();
-    }
-    
-    public void solenoidTest(){
-    	s1.set(true);
-    	s2.set(false);
-//    	Timer.delay(1);
-//    	s1.set(false);
-//    	s1.set(true);
     }
 }
