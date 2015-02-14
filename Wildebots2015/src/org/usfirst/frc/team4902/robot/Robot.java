@@ -4,6 +4,7 @@ import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.CounterBase.EncodingType;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.PIDController;
@@ -47,10 +48,12 @@ public class Robot extends IterativeRobot {
         final int joystickLeftX = 0;
         final int joystickLeftY = 1;
         final int joystickRightX  = 4; //xBox controller = 4
-        final double joystickZeroThreshold = 0.15;
+
         
         final int joystickChannel       = 0;
         final int moduleNum = 0;
+        final double triggerThreshold = 0.1;
+        final double joystickZeroThreshold = 0.15;
         
         private Talon frontLeftMotor;
         private Talon frontRightMotor;
@@ -70,6 +73,8 @@ public class Robot extends IterativeRobot {
         
         final int rButton = 6;
         final int lButton = 5;
+        final int rTrigger = 3;
+        final int lTrigger = 2;
         
         private double offset;
         
@@ -77,17 +82,18 @@ public class Robot extends IterativeRobot {
         
         private boolean turning, startedCompressor;
         
+        
     public class PrintPIDOutput implements PIDOutput{    
     	
     	 public void pidWrite(double output){
     		 
-    		 System.out.println(output);
+    		 //System.out.println(output);
     	 }
     	
     }
     public class OffsetOutput implements PIDOutput{
     	public void pidWrite (double output) {
-    		System.out.println(output);
+    		//System.out.println(output);
     		offset = output;
     	}
     }
@@ -102,7 +108,6 @@ public class Robot extends IterativeRobot {
         rearRightMotor = new Talon(rearRightChannel);
         
         liftMotor = new Talon(liftChannel);
-        //s1.set(true);
         
         myRobot = new RobotDrive(frontLeftMotor, rearLeftMotor, frontRightMotor, rearRightMotor);
         
@@ -121,7 +126,7 @@ public class Robot extends IterativeRobot {
     	gyro.initGyro();
     	gyro.reset();
         
-        wheel1Encoder = new Encoder(1, 2, true, EncodingType.k4X);
+        wheel1Encoder = new Encoder(3, 4, true, EncodingType.k4X);
         wheel1Encoder.setMaxPeriod(.1);
         wheel1Encoder.setMinRate(10);
         wheel1Encoder.setDistancePerPulse(5);
@@ -139,8 +144,8 @@ public class Robot extends IterativeRobot {
         s1 = new Solenoid(moduleNum,2);                        // Solenoid port
         s2 = new Solenoid(moduleNum,3);
         
-        topLimit = new DigitalInput(3);
-        bottomLimit = new DigitalInput(4); //something is taking input 1 and 2
+        topLimit = new DigitalInput(0);
+        bottomLimit = new DigitalInput(1); //something is taking input 1 and 2
         
     }
     
@@ -228,29 +233,7 @@ public class Robot extends IterativeRobot {
         
         Timer.delay(0.005);
         
-        //test3();
-    	//test2();
     	//lift();        
-    }
-    
-    public void test1(){
-        
-        frontLeftMotor.set(speed);
-        Timer.delay(delay);
-        frontLeftMotor.set(STOP);
-        
-        frontRightMotor.set(speed);
-        Timer.delay(delay);
-        frontRightMotor.set(STOP);
-        
-        rearRightMotor.set(speed);
-        Timer.delay(delay);
-        rearRightMotor.set(STOP);
-        
-        rearLeftMotor.set(speed);
-        Timer.delay(delay);
-        rearLeftMotor.set(STOP);
-    
     }
     
     public void test2(){
@@ -262,77 +245,50 @@ public class Robot extends IterativeRobot {
     
     public void test3() {
     	
-    	//s1.set(true);
     	double[] array = new double[4];
     	
     	wheel1Encoder.startLiveWindowMode();
-    	//wheel2Encoder.startLiveWindowMode();
-    	//wheel3Encoder.startLiveWindowMode();
-    	//wheel4Encoder.startLiveWindowMode();
     	Timer.delay(1);
     	
     	array[0] = wheel1Encoder.getDistance();
     	lowest1 = wheel1Encoder.getDistance();
     	wheel1Encoder.getDirection();
-//    	
-//    	array[1] = wheel2Encoder.getDistance();
-//    	wheel2Encoder.getDirection();
-//    	
-//    	array[2] = wheel3Encoder.getDistance();
-//    	wheel3Encoder.getDirection();
-//    	
-//    	array[4] = wheel4Encoder.getDistance();
-//    	wheel4Encoder.getDirection();
     	
     	wheel1Encoder.stopLiveWindowMode();
-//    	wheel2Encoder.stopLiveWindowMode();
-//    	wheel3Encoder.stopLiveWindowMode();
-//    	wheel4Encoder.stopLiveWindowMode();
-    	
-//    	lowest = array[0];
-//    	for(int i = 0; i < 4; i++){
-//    		for(int j = 0; j < 4; j++){
-//    			if(array[i] < array[j]){
-//    				lowest = array[j];
-//    			}
-//    		}
-//    		
-//    	}
-    	
-//    	double ratio1 = array[0]/lowest;
-//    	double ratio2 = array[1]/lowest;
-//    	double ratio3 = array[2]/lowest;
-//    	double ratio4 = array[3]/lowest;
     	
     	lowest1 = wheel1Encoder.getDistance();
-    	System.out.println(lowest1-lowest2);
     	
     	lowest2 = lowest1;
     	
-//    	frontLeftMotor.set(speed/ratio1);
-//    	frontRightMotor.set(speed/ratio2);
-//    	rearLeftMotor.set(speed/ratio3);
-//    	rearRightMotor.set(speed/ratio4);
-    	
     }
     
-    
-    
     public void manualLift() {
+    	
+    	if(stick.getRawAxis(rTrigger) > triggerThreshold){
+    		if(topLimit.get()){
+    			liftMotor.set(STOP);
+    		}
+    		else{
+    			liftMotor.set(stick.getRawAxis(rTrigger));
+    		}
+    	}
+    	else if (stick.getRawAxis(lTrigger) > triggerThreshold){
+    		if(bottomLimit.get()){
+    			liftMotor.set(STOP);
+    		}
+    		else{
+    			liftMotor.set(-(stick.getRawAxis(lTrigger)));
+    		}
+    	}
+    	else{
+    		liftMotor.set(STOP);
+    	}
     	
     	if(stick.getRawButton(rButton)) {
     		closeGripper();
     	}
     	else if (stick.getRawButton(lButton)) {
     		openGripper();
-    	}
-    	
-    	if(topLimit.get()){
-    		liftMotor.set(STOP);
-    	}
-    	else if(bottomLimit.get()){
-    		liftMotor.set(STOP);
-    		liftEncoder.reset();
     	}
     }
     
@@ -349,9 +305,7 @@ public class Robot extends IterativeRobot {
     public void lift() {
     	boolean applyBrake = true;
     	boolean liftUp = stick.getRawButton(1);
-    	System.out.println(liftUp);
     	boolean liftDown = stick.getRawButton(2); //Not sure which buttons these are on the controller
-    	System.out.println(liftDown);
     	
     	if(applyBrake == true) {
     		s1.set(true);
@@ -381,5 +335,9 @@ public class Robot extends IterativeRobot {
     
     public void startCompressor(){
         airCompressor.start();
+    }
+    
+    public void checkSwitches() {
+    	
     }
 }
