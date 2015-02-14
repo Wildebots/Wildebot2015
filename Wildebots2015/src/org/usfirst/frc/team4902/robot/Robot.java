@@ -139,8 +139,8 @@ public class Robot extends IterativeRobot {
         s1 = new Solenoid(moduleNum,2);                        // Solenoid port
         s2 = new Solenoid(moduleNum,3);
         
-        topLimit = new DigitalInput(0);
-        bottomLimit = new DigitalInput(1);
+        topLimit = new DigitalInput(3);
+        bottomLimit = new DigitalInput(4); //something is taking input 1 and 2
         
     }
     
@@ -385,9 +385,9 @@ public class Robot extends IterativeRobot {
     
     public void solenoidTest(){
     	s1.set(true);
-    	s2.set(true);
-    	Timer.delay(5);
-    	s1.set(false);
-    	s1.set(false);
+    	s2.set(false);
+//    	Timer.delay(1);
+//    	s1.set(false);
+//    	s1.set(true);
     }
 }
