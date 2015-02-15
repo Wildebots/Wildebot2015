@@ -32,8 +32,6 @@ public class Robot extends IterativeRobot {
         RobotDrive myRobot;
         Encoder liftEncoder, wheel1Encoder, wheel2Encoder, wheel3Encoder, wheel4Encoder;
         Gyro gyro;
-        PIDController pidController;
-        PIDOutput pidOutput1, pidOutput2, pidOutput3, pidOutput4;
         
         final int liftChannelA = 5;
         final int liftChannelB = 6;
@@ -76,26 +74,40 @@ public class Robot extends IterativeRobot {
         final int rTrigger = 3;
         final int lTrigger = 2;
         
-        private double offset;
+        private OffsetCalculator offsetCalculator;
+             
         
-        private PIDOutput pidOutput;     
-        
-        private boolean turning, startedCompressor;
+        private boolean startedCompressor;
         
         
-    public class PrintPIDOutput implements PIDOutput{    
+        
+    public class OffsetCalculator{    
     	
-    	 public void pidWrite(double output){
-    		 
-    		 //System.out.println(output);
-    	 }
+    	private double setPoint = 0;
+    	private double errMargin = 0.01;
+    	private double multiplier = 0.05;
+    	private double output;
     	
-    }
-    public class OffsetOutput implements PIDOutput{
-    	public void pidWrite (double output) {
-    		//System.out.println(output);
-    		offset = output;
+    	public OffsetCalculator(double setPoint){
+    		this.setPoint = setPoint;
+    		
     	}
+    	
+    	public void setSetpoint(double setpoint) {
+    		this.setPoint = setpoint;
+    	}
+    	
+    	public double calculateOffset(double input){
+    		
+    		if(Math.abs(setPoint-input) < errMargin){
+    			return 0;
+    		}
+    		
+    		output = (setPoint-input)*multiplier;
+    		return Math.max(-1, Math.min(1, output));
+    		
+    	}
+    	
     }
         
     public void robotInit() {
@@ -109,7 +121,7 @@ public class Robot extends IterativeRobot {
         
         liftMotor = new Talon(liftChannel);
         
-        myRobot = new RobotDrive(frontLeftMotor, rearLeftMotor, frontRightMotor, rearRightMotor);
+        myRobot = new RobotDrive(new Talon(7), rearLeftMotor, new Talon(8), rearRightMotor);
         
         myRobot.setInvertedMotor(MotorType.kFrontRight, false);
         myRobot.setInvertedMotor(MotorType.kFrontLeft, true);
@@ -133,10 +145,6 @@ public class Robot extends IterativeRobot {
         wheel1Encoder.setReverseDirection(true);
         wheel1Encoder.setSamplesToAverage(7);
         
-        pidOutput = new OffsetOutput();
-        pidController = new PIDController(gyro.getAngle(), 0, 0, gyro, pidOutput);
-        
-        turning = false;
         startedCompressor = false;
         
         airCompressor = new Compressor(moduleNum);  //Digtial I/O,Relay\
@@ -162,58 +170,55 @@ public class Robot extends IterativeRobot {
     }
     
     /**
-     * Checks whether the robot is turning and resets the gyro after turning
-     * @param input
-     */
-    public void turning(double input){
-    	if(Math.abs(input) > joystickZeroThreshold){
-    		pidController.disable();
-    		offset = 0;
-    		turning = true;
-    	}
-    	if((turning == true)&&(Math.abs(input) < joystickZeroThreshold)){
-    		pidController.setSetpoint(gyro.getAngle());
-    		pidController.enable();
-    		turning = false;
-    	}
-    }
-    
-    /**
      * Initialize for teleop
      */
     public void teleopInit(){
         System.out.println("created the pid Controller");
-        pidController.enable();
+        gyro.reset();
+        
+        offsetCalculator = new OffsetCalculator(gyro.getAngle());
+        
     }
     
     /**
      * Loop for the teleop phase
      */
     public void teleopPeriodic() {
-        //System.out.println(stick.getX() + ", " + stick.getY());
+
         double inputX = joystickZeroed(stick.getX());
         double inputY = joystickZeroed(stick.getY());
         double inputZ = joystickZeroed(stick.getZ());
         
-        turning(inputZ);
+        double offset = turning(inputZ, offsetCalculator.calculateOffset(gyro.getAngle()));
         
         manualLift();
         
-        myRobot.mecanumDrive_Cartesian(-inputX, -inputY, -0.35*inputZ+offset, 0);
+        System.out.println(inputX + ", " + inputY + ", " + inputZ + ", " + gyro.getAngle() + ", " + offset);
+        
+        myRobot.mecanumDrive_Cartesian(0, -inputY, -0.35*inputZ+offset, 0);
                 
         Timer.delay(0.005);
     }
     
-    public void disabledInit() {
-    	if(pidController != null) {
-    		gyro.reset();
-    		pidController.disable();
+    /**
+     * Checks whether the robot is turning and resets the gyro after turning
+     * @param input
+     */
+    public double turning(double input, double offset){
+    	if(Math.abs(input) > joystickZeroThreshold){
+    		offsetCalculator.setSetpoint(gyro.getAngle());
+    		return 0;
     	}
+    	return offset;
+    }
+    
+    public void disabledInit() {
+    		gyro.reset();
     }
     
     @Override
     public void testInit() {
-        pidController.enable();
+    	
     }
     
     public void testPeriodic() {     
@@ -229,7 +234,7 @@ public class Robot extends IterativeRobot {
         double inputY = -0.0;
         double inputZ = 0;
         
-        myRobot.mecanumDrive_Cartesian(-inputX, -inputY, -0.35*inputZ-offset*0, 0);
+        myRobot.mecanumDrive_Cartesian(-inputX, -inputY, -0.35*inputZ*0, 0);
         
         Timer.delay(0.005);
         
