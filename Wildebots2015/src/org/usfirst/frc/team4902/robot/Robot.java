@@ -1,5 +1,6 @@
 package org.usfirst.frc.team4902.robot;
 
+import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.CounterBase.EncodingType;
 import edu.wpi.first.wpilibj.DigitalInput;
@@ -20,17 +21,14 @@ import java.util.*;
 
 public class Robot extends IterativeRobot {
 	
-	//http://wpilib.screenstepslive.com/s/3120/m/7912/l/85770-measuring-rotation-of-a-wheel-or-other-shaft-using-encoders
-	// encoder instructions
-	
 	int counter = 0;
 	double lowest1 = 0;
 	double lowest2 = 0;
 	
-	
+	CameraServer server;
         Joystick stick;
         RobotDrive myRobot;
-        Encoder liftEncoder, wheel1Encoder, wheel2Encoder, wheel3Encoder, wheel4Encoder;
+        Encoder liftEncoder, wheel1Encoder, wheel2Encoder;
         Gyro gyro;
         
         final int liftChannelA = 5;
@@ -42,6 +40,10 @@ public class Robot extends IterativeRobot {
         final int rearRightChannel = 1;
         
         final int liftChannel = 4;
+        
+        private boolean liftUp;
+        private boolean liftDown;
+        final double liftSpeed = 0.2;
         
         final int joystickLeftX = 0;
         final int joystickLeftY = 1;
@@ -78,7 +80,7 @@ public class Robot extends IterativeRobot {
              
         
         private boolean startedCompressor;
-        
+        private boolean autonomousLift = false;
         
         
     public class OffsetCalculator{    
@@ -104,6 +106,7 @@ public class Robot extends IterativeRobot {
     		}
     		
     		output = (setPoint-input)*multiplier;
+    		System.out.println(output);
     		return Math.max(-1, Math.min(1, output));
     		
     	}
@@ -112,7 +115,8 @@ public class Robot extends IterativeRobot {
         
     public void robotInit() {
        
-        
+        liftUp = false;
+        liftDown = false;
     	
         frontLeftMotor = new Talon(frontLeftChannel);
         frontRightMotor = new Talon(frontRightChannel);
@@ -121,7 +125,7 @@ public class Robot extends IterativeRobot {
         
         liftMotor = new Talon(liftChannel);
         
-        myRobot = new RobotDrive(new Talon(7), rearLeftMotor, new Talon(8), rearRightMotor);
+        myRobot = new RobotDrive(frontLeftMotor, rearLeftMotor, frontRightMotor, rearRightMotor);
         
         myRobot.setInvertedMotor(MotorType.kFrontRight, false);
         myRobot.setInvertedMotor(MotorType.kFrontLeft, true);
@@ -138,7 +142,14 @@ public class Robot extends IterativeRobot {
     	gyro.initGyro();
     	gyro.reset();
         
-        wheel1Encoder = new Encoder(3, 4, true, EncodingType.k4X);
+    	liftEncoder = new Encoder(2, 3, true, EncodingType.k4X);
+    	liftEncoder.setMaxPeriod(0.1);
+    	liftEncoder.setMinRate(10);
+        liftEncoder.setDistancePerPulse(2048); //2.09 in /2048
+        liftEncoder.setReverseDirection(true);
+        liftEncoder.setSamplesToAverage(7);
+        
+        wheel1Encoder = new Encoder(4, 5, true, EncodingType.k4X);
         wheel1Encoder.setMaxPeriod(.1);
         wheel1Encoder.setMinRate(10);
         wheel1Encoder.setDistancePerPulse(5);
@@ -155,10 +166,33 @@ public class Robot extends IterativeRobot {
         topLimit = new DigitalInput(0);
         bottomLimit = new DigitalInput(1); //something is taking input 1 and 2
         
+        server = CameraServer.getInstance();
+        server.setQuality(100);
+        server.startAutomaticCapture("cam0");
+        
     }
     
     public void autonomousPeriodic() {
-        myRobot.mecanumDrive_Cartesian(0, 0.25, 0, 0);
+    	closeGripper();
+        Timer.delay(0.5);
+        if(autonomousLift == false){
+        	liftMotor.set(0.2);
+        	Timer.delay(0.2);
+        	liftMotor.set(STOP);
+        	autonomousLift = true;
+        }
+        else if(gyro.getAngle() < 90){
+        	myRobot.mecanumDrive_Cartesian(0, 0, 0.5, 0);
+        }
+        else if(counter < 500){
+        	myRobot.mecanumDrive_Cartesian(0, 0.5, 0, 0);
+        	counter++;
+        }
+        else{
+        	myRobot.mecanumDrive_Cartesian(0, 0, 0, 0);
+        	openGripper();
+        }
+        
         
     }
 
@@ -173,7 +207,6 @@ public class Robot extends IterativeRobot {
      * Initialize for teleop
      */
     public void teleopInit(){
-        System.out.println("created the pid Controller");
         gyro.reset();
         
         offsetCalculator = new OffsetCalculator(gyro.getAngle());
@@ -193,9 +226,9 @@ public class Robot extends IterativeRobot {
         
         manualLift();
         
-        System.out.println(inputX + ", " + inputY + ", " + inputZ + ", " + gyro.getAngle() + ", " + offset);
+      //  System.out.println(inputX + ", " + inputY + ", " + inputZ + ", " + gyro.getAngle() + ", " + offset);
         
-        myRobot.mecanumDrive_Cartesian(0, -inputY, -0.35*inputZ+offset, 0);
+        myRobot.mecanumDrive_Cartesian(-inputX, -inputY, -0.35*inputZ+offset, 0);
                 
         Timer.delay(0.005);
     }
@@ -218,27 +251,13 @@ public class Robot extends IterativeRobot {
     
     @Override
     public void testInit() {
-    	
+        liftEncoder.startLiveWindowMode();
     }
     
     public void testPeriodic() {     
     	
-    	if(startedCompressor == false){
-    		startCompressor();
-    	}
-    	else{
-    		startedCompressor = true;
-    	}
-    	
-        double inputX = 0;
-        double inputY = -0.0;
-        double inputZ = 0;
+        System.out.println(liftEncoder.getDistance());
         
-        myRobot.mecanumDrive_Cartesian(-inputX, -inputY, -0.35*inputZ*0, 0);
-        
-        Timer.delay(0.005);
-        
-    	//lift();        
     }
     
     public void test2(){
@@ -268,6 +287,7 @@ public class Robot extends IterativeRobot {
     }
     
     public void manualLift() {
+    	double liftDistance = 0;
     	
     	if(stick.getRawAxis(rTrigger) > triggerThreshold){
     		if(topLimit.get()){
@@ -295,6 +315,30 @@ public class Robot extends IterativeRobot {
     	else if (stick.getRawButton(lButton)) {
     		openGripper();
     	}
+    	
+    	if(stick.getRawButton(4)){
+    		liftUp = true;
+    		liftDistance = Math.abs(liftEncoder.getDistance());
+    	}
+    	else if(stick.getRawButton(1)){
+    		liftDown = true;
+    		liftDistance = Math.abs(liftEncoder.getDistance());
+    	}
+    	else if(liftUp&&((Math.abs(liftEncoder.getDistance())-liftDistance) < 10)){
+    		liftMotor.set(liftSpeed);
+		}
+    	else if(liftDown&&((Math.abs(liftEncoder.getDistance())-liftDistance) < 10)){
+    		liftMotor.set(-liftSpeed);
+    	}
+    	else if(liftDown||liftUp){
+    		liftMotor.set(0);
+    		liftUp = false;
+    		liftDown = false;
+    	}
+    	else{
+    		liftUp = false;
+    		liftDown = false;
+    	}
     }
     
     public void closeGripper(){
@@ -307,42 +351,7 @@ public class Robot extends IterativeRobot {
     	s2.set(true);
     }
     
-    public void lift() {
-    	boolean applyBrake = true;
-    	boolean liftUp = stick.getRawButton(1);
-    	boolean liftDown = stick.getRawButton(2); //Not sure which buttons these are on the controller
-    	
-    	if(applyBrake == true) {
-    		s1.set(true);
-    	}
-    	else if(applyBrake == false) {
-    		s1.set(false);
-    	}
-    	
-    	if(liftUp == true) {
-    		applyBrake = false;
-    		liftMotor.set(speed);
-            liftMotor.set(STOP);
-    	}
-    	else {
-    		applyBrake = true;
-    	}
-    	
-    	if(liftDown == true) {
-    		applyBrake = false;
-    		liftMotor.set(reverse);
-            liftMotor.set(STOP);
-    	}
-    	else {
-    		applyBrake = true;
-    	}
-    }
-    
     public void startCompressor(){
         airCompressor.start();
-    }
-    
-    public void checkSwitches() {
-    	
     }
 }
