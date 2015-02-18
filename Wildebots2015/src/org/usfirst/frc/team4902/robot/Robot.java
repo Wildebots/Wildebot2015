@@ -31,6 +31,11 @@ public class Robot extends IterativeRobot {
         Encoder liftEncoder, wheel1Encoder, wheel2Encoder;
         Gyro gyro;
         
+        final int buttonA = 1;
+        final int buttonB = 2;
+        final int buttonY = 4;
+        final double toteHeight = 1;
+        
         final int liftChannelA = 5;
         final int liftChannelB = 6;
         
@@ -44,6 +49,9 @@ public class Robot extends IterativeRobot {
         private boolean liftUp;
         private boolean liftDown;
         final double liftSpeed = 0.2;
+        private int autoLiftMode = 0;
+        private double liftStart = 0;
+        private double liftEnd = 0;
         
         final int joystickLeftX = 0;
         final int joystickLeftY = 1;
@@ -64,7 +72,7 @@ public class Robot extends IterativeRobot {
         private DigitalInput topLimit, bottomLimit;
         
         private Compressor airCompressor;
-        private Solenoid s1, s2;
+        private Solenoid s1, s2, sBrake1, sBrake2;
         
         final double speed = 0.2;
         final double STOP = 0.0;
@@ -86,8 +94,8 @@ public class Robot extends IterativeRobot {
     public class OffsetCalculator{    
     	
     	private double setPoint = 0;
-    	private double errMargin = 0.01;
-    	private double multiplier = 0.05;
+    	private double errMargin = 0.1;
+    	private double multiplier = 0.025;
     	private double output;
     	
     	public OffsetCalculator(double setPoint){
@@ -106,7 +114,7 @@ public class Robot extends IterativeRobot {
     		}
     		
     		output = (setPoint-input)*multiplier;
-    		System.out.println(output);
+    		//System.out.println(output);
     		return Math.max(-1, Math.min(1, output));
     		
     	}
@@ -114,7 +122,7 @@ public class Robot extends IterativeRobot {
     }
         
     public void robotInit() {
-       
+    	
         liftUp = false;
         liftDown = false;
     	
@@ -141,13 +149,14 @@ public class Robot extends IterativeRobot {
         gyro = new Gyro(0);
     	gyro.initGyro();
     	gyro.reset();
+    	
+        offsetCalculator = new OffsetCalculator(gyro.getAngle());
         
-    	liftEncoder = new Encoder(2, 3, true, EncodingType.k4X);
-    	liftEncoder.setMaxPeriod(0.1);
-    	liftEncoder.setMinRate(10);
-        liftEncoder.setDistancePerPulse(2048); //2.09 in /2048
-        liftEncoder.setReverseDirection(true);
-        liftEncoder.setSamplesToAverage(7);
+    	liftEncoder = new Encoder(2, 3, false, EncodingType.k1X);
+    	//liftEncoder.setMaxPeriod(0.02);
+    	//liftEncoder.setMinRate(1);
+        liftEncoder.setDistancePerPulse((2.09*Math.PI)/2048); //2.09 in /2048
+        //liftEncoder.setSamplesToAverage(7);
         
         wheel1Encoder = new Encoder(4, 5, true, EncodingType.k4X);
         wheel1Encoder.setMaxPeriod(.1);
@@ -162,8 +171,10 @@ public class Robot extends IterativeRobot {
         
         s1 = new Solenoid(moduleNum,2);                        // Solenoid port
         s2 = new Solenoid(moduleNum,3);
+        sBrake1 = new Solenoid(moduleNum, 1);
+        sBrake2 = new Solenoid(moduleNum, 0);
         
-        topLimit = new DigitalInput(0);
+        topLimit = new DigitalInput(6);
         bottomLimit = new DigitalInput(1); //something is taking input 1 and 2
         
         server = CameraServer.getInstance();
@@ -172,9 +183,12 @@ public class Robot extends IterativeRobot {
         
     }
     
+    public void autonomousInit(){
+    	openGripper();
+    }
+    
     public void autonomousPeriodic() {
     	closeGripper();
-        Timer.delay(0.5);
         if(autonomousLift == false){
         	liftMotor.set(0.2);
         	Timer.delay(0.2);
@@ -184,9 +198,12 @@ public class Robot extends IterativeRobot {
         else if(gyro.getAngle() < 90){
         	myRobot.mecanumDrive_Cartesian(0, 0, 0.5, 0);
         }
-        else if(counter < 500){
-        	myRobot.mecanumDrive_Cartesian(0, 0.5, 0, 0);
+        else if(counter < 300){
+        	offsetCalculator.setSetpoint(90);
+        	double offset = 0.5*offsetCalculator.calculateOffset(gyro.getAngle());
+        	myRobot.mecanumDrive_Cartesian(0, 0.5, offset, 0);
         	counter++;
+        	System.out.println(counter);
         }
         else{
         	myRobot.mecanumDrive_Cartesian(0, 0, 0, 0);
@@ -208,8 +225,10 @@ public class Robot extends IterativeRobot {
      */
     public void teleopInit(){
         gyro.reset();
+        liftEncoder.reset();
         
         offsetCalculator = new OffsetCalculator(gyro.getAngle());
+        openGripper();
         
     }
     
@@ -224,7 +243,12 @@ public class Robot extends IterativeRobot {
         
         double offset = turning(inputZ, offsetCalculator.calculateOffset(gyro.getAngle()));
         
-        manualLift();
+        if(autoLiftMode == 0){
+        	manualLift();
+        }
+        else{
+        	autoLift();
+        }
         
       //  System.out.println(inputX + ", " + inputY + ", " + inputZ + ", " + gyro.getAngle() + ", " + offset);
         
@@ -247,17 +271,19 @@ public class Robot extends IterativeRobot {
     
     public void disabledInit() {
     		gyro.reset();
+    		applyLiftBrake();
     }
     
     @Override
     public void testInit() {
         liftEncoder.startLiveWindowMode();
+        startCompressor();
+        releaseLiftBrake();
     }
     
-    public void testPeriodic() {     
-    	
-        System.out.println(liftEncoder.getDistance());
-        
+    public void testPeriodic() {
+        //liftUp(1);
+        //System.out.println(liftEncoder.getDistance() + ", " + liftEncoder.getRaw());
     }
     
     public void test2(){
@@ -286,59 +312,123 @@ public class Robot extends IterativeRobot {
     	
     }
     
-    public void manualLift() {
-    	double liftDistance = 0;
-    	
-    	if(stick.getRawAxis(rTrigger) > triggerThreshold){
-    		if(topLimit.get()){
-    			liftMotor.set(STOP);
-    		}
-    		else{
-    			liftMotor.set(stick.getRawAxis(rTrigger));
-    		}
-    	}
-    	else if (stick.getRawAxis(lTrigger) > triggerThreshold){
-    		if(bottomLimit.get()){
-    			liftMotor.set(STOP);
-    		}
-    		else{
-    			liftMotor.set(-(stick.getRawAxis(lTrigger)));
-    		}
-    	}
-    	else{
-    		liftMotor.set(STOP);
-    	}
-    	
-    	if(stick.getRawButton(rButton)) {
-    		closeGripper();
-    	}
-    	else if (stick.getRawButton(lButton)) {
-    		openGripper();
-    	}
-    	
-    	if(stick.getRawButton(4)){
-    		liftUp = true;
-    		liftDistance = Math.abs(liftEncoder.getDistance());
-    	}
-    	else if(stick.getRawButton(1)){
-    		liftDown = true;
-    		liftDistance = Math.abs(liftEncoder.getDistance());
-    	}
-    	else if(liftUp&&((Math.abs(liftEncoder.getDistance())-liftDistance) < 10)){
-    		liftMotor.set(liftSpeed);
+    public void liftUp(double speed){
+		if(topLimit.get()){
+			liftMotor.set(STOP);
 		}
-    	else if(liftDown&&((Math.abs(liftEncoder.getDistance())-liftDistance) < 10)){
-    		liftMotor.set(-liftSpeed);
+		else{
+			releaseLiftBrake();
+			Timer.delay(0.01);
+			liftMotor.set(speed);
+		}
+    }
+    
+    public void liftDown(double speed){
+		
+		if(bottomLimit.get()){
+			liftMotor.set(STOP);
+			liftEncoder.reset();
+			System.out.println("reset encoder " + liftEncoder.get());
+		}
+		else{
+			releaseLiftBrake();
+			Timer.delay(0.01);
+			liftMotor.set(speed);
+		}
+    }
+    
+    public void applyLiftBrake(){
+		liftMotor.set(STOP);
+		sBrake1.set(false);
+		sBrake2.set(true);
+    }
+    
+    public void releaseLiftBrake(){
+    	sBrake1.set(true);
+    	sBrake2.set(false);
+    }
+    
+    public void manualLift() {
+    	System.out.println(topLimit.get() + ", " + bottomLimit.get() + ", " + liftEncoder.get() + ", " + liftEncoder.getDistance());
+	
+		if(stick.getRawAxis(rTrigger) > triggerThreshold){
+			liftUp(stick.getRawAxis(rTrigger));
+		}
+		else if (stick.getRawAxis(lTrigger) > triggerThreshold){
+			liftDown(-stick.getRawAxis(lTrigger));
+		}
+		else{	
+			applyLiftBrake();		
+		}
+		
+		if(stick.getRawButton(rButton)) {
+			closeGripper();
+		}
+		else if (stick.getRawButton(lButton)) {
+			openGripper();
+		}
+    	
+    }
+    
+    public void checkForAutoLift(){
+    	if(stick.getRawButton(buttonA)){
+    		autoLiftMode = 1;
     	}
-    	else if(liftDown||liftUp){
-    		liftMotor.set(0);
-    		liftUp = false;
-    		liftDown = false;
+    	else if(stick.getRawButton(buttonY)){
+    		autoLiftMode = 2;
     	}
-    	else{
-    		liftUp = false;
-    		liftDown = false;
+    	else if(stick.getRawButton(buttonB)){
+    		autoLiftMode = 3;
     	}
+    }
+    
+    public void autoLift(){
+    	
+    	if(autoLiftMode == 1){
+    		autoLiftAddToStack();
+    	}
+    	else if(autoLiftMode == 2){
+    		autoLiftPickupTote();
+    	}
+    	else if(autoLiftMode == 3){
+    		autoLiftReset();
+    	}
+    }
+    
+    public void autoLiftAddToStack(){
+//    	else if(stick.getRawButton(1)){
+//    		sBrake1.set(false);
+//    		sBrake2.set(true);
+//    		liftDown = true;
+//    		liftDistance = Math.abs(liftEncoder.getDistance());
+//    	}
+//    	else if(liftDown&&((Math.abs(liftEncoder.getDistance())-liftDistance) < 10)){
+//    		sBrake1.set(false);
+//    		sBrake2.set(true);
+//    		liftMotor.set(-liftSpeed);
+//    	}
+    }
+    
+    public void autoLiftPickupTote(){
+    	
+    	closeGripper();
+    	
+//    	if(stick.getRawButton(4)){
+//    		sBrake1.set(false);
+//    		sBrake2.set(true);
+//    		liftUp = true;
+//    		liftDistance = Math.abs(liftEncoder.getDistance());
+//    	}
+//    	else if(liftUp&&((Math.abs(liftEncoder.getDistance())-liftDistance) < 10)){
+//    		sBrake1.set(false);
+//    		sBrake2.set(true);
+//    		liftMotor.set(liftSpeed);
+//		}
+    	
+    }
+    
+    public void autoLiftReset(){
+    	
     }
     
     public void closeGripper(){
